@@ -16,18 +16,18 @@ module Inferno
         case property
 
         when 'lifecycle-status'
-          value_found = can_resolve_path(resource, 'lifecycleStatus') { |value_in_resource| value_in_resource == value }
-          assert value_found, 'lifecycle-status on resource does not match lifecycle-status requested'
+          value_found = resolve_element_from_path(resource, 'lifecycleStatus') { |value_in_resource| value.split(',').include? value_in_resource }
+          assert value_found.present?, 'lifecycle-status on resource does not match lifecycle-status requested'
 
         when 'patient'
-          value_found = can_resolve_path(resource, 'subject.reference') { |reference| [value, 'Patient/' + value].include? reference }
-          assert value_found, 'patient on resource does not match patient requested'
+          value_found = resolve_element_from_path(resource, 'subject.reference') { |reference| [value, 'Patient/' + value].include? reference }
+          assert value_found.present?, 'patient on resource does not match patient requested'
 
         when 'target-date'
-          value_found = can_resolve_path(resource, 'target.dueDate') do |date|
+          value_found = resolve_element_from_path(resource, 'target.dueDate') do |date|
             validate_date_search(value, date)
           end
-          assert value_found, 'target-date on resource does not match target-date requested'
+          assert value_found.present?, 'target-date on resource does not match target-date requested'
 
         end
       end
@@ -247,7 +247,7 @@ module Inferno
         must_support_elements.each do |path|
           @goal_ary&.each do |resource|
             truncated_path = path.gsub('Goal.', '')
-            must_support_confirmed[path] = true if can_resolve_path(resource, truncated_path)
+            must_support_confirmed[path] = true if resolve_element_from_path(resource, truncated_path).present?
             break if must_support_confirmed[path]
           end
           resource_count = @goal_ary.length

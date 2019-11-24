@@ -17,12 +17,12 @@ module Inferno
         case property
 
         when 'specialty'
-          value_found = can_resolve_path(resource, 'specialty.coding.code') { |value_in_resource| value_in_resource == value }
-          assert value_found, 'specialty on resource does not match specialty requested'
+          value_found = resolve_element_from_path(resource, 'specialty.coding.code') { |value_in_resource| value.split(',').include? value_in_resource }
+          assert value_found.present?, 'specialty on resource does not match specialty requested'
 
         when 'practitioner'
-          value_found = can_resolve_path(resource, 'practitioner.reference') { |value_in_resource| value_in_resource == value }
-          assert value_found, 'practitioner on resource does not match practitioner requested'
+          value_found = resolve_element_from_path(resource, 'practitioner.reference') { |value_in_resource| value.split(',').include? value_in_resource }
+          assert value_found.present?, 'practitioner on resource does not match practitioner requested'
 
         end
       end
@@ -250,7 +250,7 @@ module Inferno
         must_support_elements.each do |path|
           @practitioner_role_ary&.each do |resource|
             truncated_path = path.gsub('PractitionerRole.', '')
-            must_support_confirmed[path] = true if can_resolve_path(resource, truncated_path)
+            must_support_confirmed[path] = true if resolve_element_from_path(resource, truncated_path).present?
             break if must_support_confirmed[path]
           end
           resource_count = @practitioner_role_ary.length

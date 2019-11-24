@@ -16,34 +16,34 @@ module Inferno
         case property
 
         when '_id'
-          value_found = can_resolve_path(resource, 'id') { |value_in_resource| value_in_resource == value }
-          assert value_found, '_id on resource does not match _id requested'
+          value_found = resolve_element_from_path(resource, 'id') { |value_in_resource| value.split(',').include? value_in_resource }
+          assert value_found.present?, '_id on resource does not match _id requested'
 
         when 'class'
-          value_found = can_resolve_path(resource, 'local_class.code') { |value_in_resource| value_in_resource == value }
-          assert value_found, 'class on resource does not match class requested'
+          value_found = resolve_element_from_path(resource, 'local_class.code') { |value_in_resource| value.split(',').include? value_in_resource }
+          assert value_found.present?, 'class on resource does not match class requested'
 
         when 'date'
-          value_found = can_resolve_path(resource, 'period') do |period|
+          value_found = resolve_element_from_path(resource, 'period') do |period|
             validate_period_search(value, period)
           end
-          assert value_found, 'date on resource does not match date requested'
+          assert value_found.present?, 'date on resource does not match date requested'
 
         when 'identifier'
-          value_found = can_resolve_path(resource, 'identifier.value') { |value_in_resource| value_in_resource == value }
-          assert value_found, 'identifier on resource does not match identifier requested'
+          value_found = resolve_element_from_path(resource, 'identifier.value') { |value_in_resource| value.split(',').include? value_in_resource }
+          assert value_found.present?, 'identifier on resource does not match identifier requested'
 
         when 'patient'
-          value_found = can_resolve_path(resource, 'subject.reference') { |reference| [value, 'Patient/' + value].include? reference }
-          assert value_found, 'patient on resource does not match patient requested'
+          value_found = resolve_element_from_path(resource, 'subject.reference') { |reference| [value, 'Patient/' + value].include? reference }
+          assert value_found.present?, 'patient on resource does not match patient requested'
 
         when 'status'
-          value_found = can_resolve_path(resource, 'status') { |value_in_resource| value_in_resource == value }
-          assert value_found, 'status on resource does not match status requested'
+          value_found = resolve_element_from_path(resource, 'status') { |value_in_resource| value.split(',').include? value_in_resource }
+          assert value_found.present?, 'status on resource does not match status requested'
 
         when 'type'
-          value_found = can_resolve_path(resource, 'type.coding.code') { |value_in_resource| value_in_resource == value }
-          assert value_found, 'type on resource does not match type requested'
+          value_found = resolve_element_from_path(resource, 'type.coding.code') { |value_in_resource| value.split(',').include? value_in_resource }
+          assert value_found.present?, 'type on resource does not match type requested'
 
         end
       end
@@ -367,7 +367,7 @@ module Inferno
         must_support_elements.each do |path|
           @encounter_ary&.each do |resource|
             truncated_path = path.gsub('Encounter.', '')
-            must_support_confirmed[path] = true if can_resolve_path(resource, truncated_path)
+            must_support_confirmed[path] = true if resolve_element_from_path(resource, truncated_path).present?
             break if must_support_confirmed[path]
           end
           resource_count = @encounter_ary.length
