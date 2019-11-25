@@ -158,7 +158,7 @@ module Inferno
           validate_search_reply(versioned_resource_class('CarePlan'), reply, comparator_search_params)
           assert_response_ok(reply)
         end
-        second_value = resolve_element_from_path(@careplan_ary, 'status') { |el| get_value_for_search_param(el) != search_params[:status] }
+        second_value = resolve_element_from_path(@care_plan_ary, 'status') { |el| get_value_for_search_param(el) != search_params[:status] }
         skip 'Cannot find second value for status to perform a multipleOr search' if second_value.nil?
 
         search_params[:status] += ',' + get_value_for_search_param(second_value)
@@ -191,7 +191,7 @@ module Inferno
         validate_search_reply(versioned_resource_class('CarePlan'), reply, search_params)
         assert_response_ok(reply)
 
-        second_value = resolve_element_from_path(@careplan_ary, 'status') { |el| get_value_for_search_param(el) != search_params[:status] }
+        second_value = resolve_element_from_path(@care_plan_ary, 'status') { |el| get_value_for_search_param(el) != search_params[:status] }
         skip 'Cannot find second value for status to perform a multipleOr search' if second_value.nil?
 
         search_params[:status] += ',' + get_value_for_search_param(second_value)
