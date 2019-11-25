@@ -148,7 +148,7 @@ module Inferno
         validate_search_reply(versioned_resource_class('Encounter'), reply, search_params)
         assert_response_ok(reply)
 
-        ['gt', 'lt', 'le'].each do |comparator|
+        ['gt', 'lt', 'le', 'ge'].each do |comparator|
           comparator_val = date_comparator_value(comparator, search_params[:date])
           comparator_search_params = { 'date': comparator_val, 'patient': search_params[:patient] }
           reply = get_resource_by_params(versioned_resource_class('Encounter'), comparator_search_params)
