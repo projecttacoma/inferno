@@ -14,6 +14,7 @@ class WebUtilsTest < MiniTest::Test
     # 3 second timeout
     retry_timeout = 3
     WebMock.reset!
+    WebMock.disable_net_connect!
     # specify requesting server to retry after 1 second
     stub_request(:get, 'http://www.example.com/Patient/')
       .with(headers: REQUEST_HEADERS)
