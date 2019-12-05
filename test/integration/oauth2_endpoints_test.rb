@@ -38,7 +38,6 @@ class OAuth2EndpointsTest < MiniTest::Test
   end
 
   def setup
-    WebMock.disable_net_connect!
     set_global_mocks
   end
 

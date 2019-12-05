@@ -16,7 +16,9 @@ FileUtils.rm test_log_filename if File.exist? test_log_filename
 
 require_relative '../lib/app'
 
+
 def set_global_mocks
+  WebMock.disable_net_connect!
   measures_endpoint = Inferno::CQF_RULER + 'Measure'
   stub_request(:get, measures_endpoint)
     .with(
