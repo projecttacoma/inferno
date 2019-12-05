@@ -18,7 +18,7 @@ require_relative '../lib/app'
 
 
 def set_global_mocks
-  WebMock.disable_net_connect!
+  WebMock.disable_net_connect!(allow_localhost: true)
   measures_endpoint = Inferno::CQF_RULER + 'Measure'
   stub_request(:get, measures_endpoint)
     .with(
