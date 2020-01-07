@@ -36,11 +36,17 @@ class MeasureAvailabilityTest < MiniTest::Test
     MEASURES_TO_TEST.each do |req|
       # Set other variables needed
       measure_resource = load_json_fixture(req[:mock_get_measure_response])
+      search_response_body = {
+        resourceType: 'Bundle',
+        total: 1,
+        entry: [{ resource: measure_resource }]
+      }.to_json
       @instance.measure_to_test = req[:measure_id]
+      binding.pry
       # Mock a request for measure resource with specified id
-      stub_request(:get, "http://www.example.com/Measure?_id=#{@instance.measure_to_test}")
+      stub_request(:get, /Measure/)
         .with(headers: REQUEST_HEADERS)
-        .to_return(status: 200, body: measure_resource.to_json, headers: {})
+        .to_return(status: 200, body: search_response_body, headers: {})
 
       sequence_result = @sequence.start
       assert sequence_result.pass?, 'The sequence should be marked as pass.'
@@ -51,7 +57,7 @@ class MeasureAvailabilityTest < MiniTest::Test
   def test_measure_not_found
     WebMock.reset!
     @instance.measure_to_test = 'foobar'
-    stub_request(:get, 'http://www.example.com/Measure?_id=foobar')
+    stub_request(:get, /Measure/)
       .with(headers: REQUEST_HEADERS)
       .to_return(status: 404, body: '', headers: {})
 
