@@ -11,7 +11,7 @@ module Inferno
       title 'Measure Availability'
 
       test_id_prefix 'measure_availability'
-      requires :measure_to_test
+      requires :measure_to_test, :api_key, :auth_header
 
       description 'Ensure that a specific measure exists on test server'
 
