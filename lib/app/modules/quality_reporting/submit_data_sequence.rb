@@ -35,6 +35,10 @@ module Inferno
                                 # '../../../../resources/quality_reporting/CMS165/Bundle/cms165-patient-bundle.json'
                               end
 
+        def search_resource(klass, identifier)
+          @client.search(klass, search: { parameters: { identifier: identifier } })
+        end
+
         patient_file = File.expand_path(patient_bundle_path, __dir__)
         patient_bundle = FHIR::STU3::Json.from_json(File.read(patient_file))
         resources = patient_bundle.entry.map(&:resource)
@@ -45,7 +49,12 @@ module Inferno
         submit_data_response = submit_data(@instance.measure_to_test, resources, measure_report)
         assert_response_ok(submit_data_response)
 
-        resources.push(measure_report)
+        # Search for MeasureReport
+        measure_report_identifier = measure_report[:identifier].first[:value]
+        assert !measure_report_identifier.nil?, 'Expected MeasureReport to have an identifier'
+        search_response = search_resource(FHIR::STU3::MeasureReport, measure_report_identifier)
+        assert_response_ok search_response
+        assert_non_empty_search search_response
 
         # GET and assert presence of all submitted resources
         resources.each do |r|
@@ -53,12 +62,11 @@ module Inferno
           assert !identifier.nil?
 
           # Search for resource by identifier
-          search_response = @client.search(r.class, search: { parameters: { identifier: identifier } })
+          search_response = search_resource(r.class, identifier)
           assert_response_ok search_response
-          search_bundle = search_response.resource
 
           # Expect a non-exmpty searchset Bundle
-          assert(search_bundle.total.positive?, "Search for a #{r.resourceType} with identifier #{identifier} returned no results")
+          assert_non_empty_search search_response
         end
       end
     end

@@ -14,8 +14,17 @@ module Inferno
     end
 
     def create_measure_report(measure_id, patient_id, period_start, period_end)
-      FHIR::STU3::MeasureReport.new.from_hash(
+      {
+        resourceType: 'MeasureReport',
         type: 'individual',
+        _type: {
+          extension: [
+            {
+              url: 'https://www.hl7.org/fhir/measurereport-definitions.html#MeasureReport.type',
+              valueString: 'data-collection'
+            }
+          ]
+        },
         identifier: [{
           value: SecureRandom.uuid
         }],
@@ -29,26 +38,28 @@ module Inferno
           start: period_start,
           end: period_end
         }
-      )
+      }
     end
 
     def submit_data(measure_id, patient_resources, measure_report)
-      parameters = FHIR::STU3::Parameters.new
-      measure_report_param = FHIR::STU3::Parameters::Parameter.new(name: 'measure-report')
-      measure_report_param.resource = measure_report
-      parameters.parameter.push(measure_report_param)
+      parameters = {
+        resourceType: 'Parameters',
+        parameter: [{
+          name: 'measure-report',
+          resource: measure_report
+        }]
+      }
 
       patient_resources.each do |r|
-        resource_param = FHIR::STU3::Parameters::Parameter.new(name: 'resource')
-        resource_param.resource = r
-        parameters.parameter.push(resource_param)
+        parameters[:parameter].push(name: 'resource', resource: r.to_hash)
       end
 
       headers = {
-        content_type: 'application/json'
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json'
       }.merge!(@client.additional_headers)
 
-      @client.post("Measure/#{measure_id}/$submit-data", parameters, headers)
+      LoggedRestClient.post("#{@instance.url}/Measure/#{measure_id}/$submit-data", parameters.to_json, headers)
     end
 
     def collect_data(measure_id, params = {})

@@ -291,5 +291,10 @@ module Inferno
         "Expected valid #{conformance_resource_name} resource."
       )
     end
+
+    def assert_non_empty_search(response)
+      search_bundle = response.resource
+      assert search_bundle.total.positive?, 'Search returned no results'
+    end
   end
 end

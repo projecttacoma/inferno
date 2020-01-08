@@ -42,7 +42,7 @@ class MeasureAvailabilityTest < MiniTest::Test
         entry: [{ resource: measure_resource }]
       }.to_json
       @instance.measure_to_test = req[:measure_id]
-      binding.pry
+
       # Mock a request for measure resource with specified id
       stub_request(:get, /Measure/)
         .with(headers: REQUEST_HEADERS)
