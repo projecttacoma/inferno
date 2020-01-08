@@ -5,15 +5,17 @@ default_test_set: developer
 fhir_version: stu3
 test_sets:
   developer:
-    view: default
+    view: guided
     tests:
       - name: Prerequisites
+        overview: The server satisfies prerequisite state for quality reporting.
         sequences:
           - MeasureAvailability
-          - ValueSetSequence
+          # - ValueSetSequence
       - name: Reporting Actions
+        overview: The server correctly handles reporting actions.
         sequences:
-          - ResourceSequence
+          # - ResourceSequence
           - SubmitDataSequence
       #- name: CMS165 Bulk Data Reporting
         #sequences:
