@@ -21,17 +21,7 @@ module Inferno
 
         # Serve our public key in a JWKS
         get '/jwks' do
-          if File.exist?('keyfile')
-            key_str = File.read('keyfile')
-            key = OpenSSL::PKey::RSA.new(key_str)
-          else
-            key = OpenSSL::PKey::RSA.generate(2048)
-            File.write('keyfile', key.export)
-          end
-
-          jwk = JSON::JWK.new(key.public_key)
-          jwks = JSON::JWK::Set.new(jwk)
-          jwks.to_json
+          Inferno::JWKS.to_json
         end
       end
     end
