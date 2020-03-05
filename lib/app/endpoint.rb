@@ -5,6 +5,7 @@ require 'sinatra/custom_logger'
 require 'sinatra/cookies'
 require_relative 'helpers/configuration'
 require_relative 'helpers/browser_logic'
+require_relative 'utils/smart_bulk_data'
 module Inferno
   class App
     class Endpoint < Sinatra::Base
@@ -21,6 +22,8 @@ module Inferno
       Inferno::NDJSON_SERVICE_TYPE = settings.ndjson_service_type.to_sym
       Inferno::CQF_RULER = settings.cqf_ruler_endpoint
       Inferno::TIMEOUT = settings.timeout
+      Inferno::PKEY = Inferno::SmartBulkData.initialize_private_key('keyfile')
+      Inferno::JWKS = Inferno::SmartBulkData.create_jwks(Inferno::PKEY)
 
       if settings.logging_enabled
         $stdout.sync = true # output in Docker is heavily delayed without this

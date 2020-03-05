@@ -18,6 +18,11 @@ module Inferno
           # Custom landing page intended to be overwritten for branded deployments
           erb :landing
         end
+
+        # Serve our public key in a JWKS
+        get '/jwks' do
+          Inferno::JWKS.to_json
+        end
       end
     end
   end
