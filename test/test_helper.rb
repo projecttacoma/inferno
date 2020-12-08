@@ -45,6 +45,20 @@ def find_fixture_directory(test_directory = nil)
   find_fixture_directory(test_directory)
 end
 
+def set_global_mocks
+  measures_endpoint = Inferno::CQF_RULER + 'Measure'
+  stub_request(:get, measures_endpoint)
+    .with(
+      headers: {
+        'Accept' => '*/*',
+        'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+        'Content-Type' => 'application/json+fhir',
+        'Host' => 'localhost:8080'
+      }
+    )
+    .to_return(status: 200, body: '', headers: {})
+end
+
 def load_json_fixture(file)
   JSON.parse(load_fixture(file))
 end

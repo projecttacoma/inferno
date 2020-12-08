@@ -12,5 +12,7 @@ coverage
 tmp/*
 .vscode/*
 resources/terminology/*
+resources/quality_reporting/NDJson
+keyfile
 sequence_coverage.csv
 fhir-pgdata/

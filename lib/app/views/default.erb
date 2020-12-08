@@ -182,6 +182,21 @@
               label: 'Client Secret',
               instance: instance,
               value: instance.client_secret}); %>
+        <%= erb(:prerequisite_field_dropdown,{},{prerequisite: :measure_to_test,
+              label: 'Measure To Test',
+              instance: instance,
+              value: instance.measure_to_test,
+              })%>
+        <%= erb(:prerequisite_field,{},{prerequisite: :api_key,
+              label: 'API Key',
+              instance: instance,
+              value: instance.api_key,
+              })%>
+        <%= erb(:prerequisite_field,{},{prerequisite: :auth_header,
+              label: 'Authorization Header',
+              instance: instance,
+              value: instance.auth_header,
+              })%>
 
         <%= erb(:prerequisite_field,{},{prerequisite: :client_name,
               label: 'OAuth Client Name',

@@ -20,6 +20,7 @@ module Inferno
     attr_accessor :title
     attr_accessor :resource_path
     attr_accessor :sequence_requirements
+    attr_accessor :measures
 
     def initialize(params)
       @name = params[:name]
@@ -85,6 +86,22 @@ module Inferno
 
     def self.available_modules
       @modules
+    end
+
+    Dir.glob(File.join(__dir__, '..', 'modules', '*_module.yml')).each do |file|
+      this_module = YAML.load_file(file).deep_symbolize_keys
+      new(this_module)
+    end
+
+    def testable_measures
+      cqf_ruler_client = FHIR::Client.new(Inferno::CQF_RULER)
+      headers = { 'content-type' => 'application/json+fhir' }
+      measures_endpoint = Inferno::CQF_RULER + 'Measure'
+      resp = cqf_ruler_client.client.get(measures_endpoint, headers)
+      bundle = FHIR::Bundle.new JSON.parse(resp.body)
+      @measures = bundle.entry.select { |e| e.resource.class == FHIR::Measure }
+    rescue StandardError
+      @measures = []
     end
   end
 end

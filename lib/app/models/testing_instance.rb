@@ -39,6 +39,7 @@ module Inferno
       property :token_expires_in, Integer
       property :id_token, String
       property :refresh_token, String
+      property :measure_to_test, String
       property :created_at, DateTime, default: proc { DateTime.now }
 
       property :oauth_introspection_endpoint, String
@@ -63,6 +64,10 @@ module Inferno
       property :data_absent_code_found, Boolean
       property :data_absent_extension_found, Boolean
 
+      # Auth credentials
+      property :api_key, String
+      property :auth_header, String
+      
       # Bulk Data Parameters
       property :bulk_url, String
       property :bulk_token_endpoint, String

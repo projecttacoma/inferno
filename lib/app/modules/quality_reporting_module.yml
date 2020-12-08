@@ -1,0 +1,29 @@
+name: quality_reporting
+title: FHIR Quality Reporting
+description: Quality Reporting with FHIR
+default_test_set: developer
+fhir_version: r4
+test_sets:
+  developer:
+    view: guided
+    tests:
+      - name: Prerequisites
+        overview: The server satisfies prerequisite state for quality reporting.
+        sequences:
+          - MeasureAvailability
+          - ValueSetSequence
+      - name: Reporting Actions
+        overview: The server correctly handles reporting actions.
+        sequences:
+          - ResourceSequence
+          - SubmitDataSequence
+          - MeasureEvaluationSequence
+      #- name: CMS165 Bulk Data Reporting
+        #sequences:
+          #- CMS165BulkDataReportingSequence
+      #- name: CMS130 Quality Reporting
+        #sequences:
+          #- CMS130ReportingSequence
+      #- name: CMS165 Quality Reporting
+        #sequences:
+          #- CMS165ReportingSequence
