@@ -204,7 +204,7 @@ GEM
       tilt (~> 2.0)
     sqlite3 (1.4.1)
     stringex (1.5.1)
-    thin (1.7.2)
+    thin (1.8.0)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
@@ -238,9 +238,9 @@ DEPENDENCIES
   fhir_client
   jwt
   kramdown
+  minitest
   ndjson
   openssl
-  minitest
   parser
   pry
   pry-byebug
