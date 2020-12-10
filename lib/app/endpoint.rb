@@ -20,7 +20,6 @@ module Inferno
       Inferno::ENVIRONMENT = settings.environment
       Inferno::PURGE_ON_RELOAD = settings.purge_database_on_reload
       Inferno::RESOURCE_VALIDATOR = Inferno::App::ResourceValidatorFactory.new_validator(settings.resource_validator, settings.external_resource_validator_url)
-      Inferno::EXTRAS = settings.include_extras
       Inferno::NDJSON_SERVICE_TYPE = settings.ndjson_service_type.to_sym
       Inferno::CQF_RULER = settings.cqf_ruler_endpoint
       Inferno::TIMEOUT = settings.timeout

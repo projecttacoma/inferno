@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../../utils/measure_operations'
-require_relative '../../utils/bulk_data/ndjson_service_factory'
+require_relative '../../app/utils/measure_operations'
+require_relative '../../app/utils/bulk_data/ndjson_service_factory'
 
 module Inferno
   module Sequence
@@ -31,8 +31,8 @@ module Inferno
         end
 
         BUNDLES = [
-          '../../../../test/fixtures/Brett333_Gutmann970_2a29169c-f0b7-415b-aaf9-43ba107006ad.json',
-          '../../../../test/fixtures/Bud153_Renner328_0f3ae208-5a0f-4bb4-ba0d-267725ef964b.json'
+          '../../../test/fixtures/Brett333_Gutmann970_2a29169c-f0b7-415b-aaf9-43ba107006ad.json',
+          '../../../test/fixtures/Bud153_Renner328_0f3ae208-5a0f-4bb4-ba0d-267725ef964b.json'
         ].freeze
 
         # Generate a URL for the ndjson to give to the server based on the service type in config.yml

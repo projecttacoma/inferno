@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../../utils/measure_operations'
-require_relative '../../utils/bundle'
+require_relative '../../app/utils/measure_operations'
+require_relative '../../app/utils/bundle'
 
 module Inferno
   module Sequence
@@ -28,11 +28,11 @@ module Inferno
         # Get the patient data to submit. We currently support cms124, cms130 only
         patient_bundle_path = case @instance.measure_to_test
                               when 'measure-EXM124-FHIR4-8.2.000', 'measure-exm124-FHIR4'
-                                '../../../../resources/quality_reporting/CMS124/Bundle/cms124-patient-bundle.json'
+                                '../../../resources/quality_reporting/CMS124/Bundle/cms124-patient-bundle.json'
                               when 'measure-EXM130-FHIR4-7.2.000', 'measure-exm130-FHIR4'
-                                '../../../../resources/quality_reporting/CMS130/Bundle/cms130-patient-bundle.json'
+                                '../../../resources/quality_reporting/CMS130/Bundle/cms130-patient-bundle.json'
                                 # when 'measure-exm165-FHIR4' # TODO: update cms165-patient-bundle to r4 when new bundles are available
-                                # '../../../../resources/quality_reporting/CMS165/Bundle/cms165-patient-bundle.json'
+                                # '../../../resources/quality_reporting/CMS165/Bundle/cms165-patient-bundle.json'
                               end
 
         patient_file = File.expand_path(patient_bundle_path, __dir__)

@@ -31,7 +31,7 @@ Check out the [Troubleshooting Documentation](https://github.com/onc-healthit/in
 
 Inferno can installed and run locally on your machine.  Install the following dependencies first:
 
-* [Ruby 2.5+](https://www.ruby-lang.org/en/)
+* [Ruby 2.5+](https://www.ruby-lang.org/en/) Version 2.5.6 required for Tacoma tests
 * [Ruby Bundler](http://bundler.io/)
 * [SQLite](https://www.sqlite.org/)
 

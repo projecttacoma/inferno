@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path '../../test_helper.rb', __dir__
+require_relative '../../../../test/test_helper'
 # Tests for the ValueSetSequence
 class ValueSetSequenceTest < MiniTest::Test
   REQUEST_HEADERS = {
@@ -20,7 +20,7 @@ class ValueSetSequenceTest < MiniTest::Test
   }.freeze
 
   # load up the CMS130 artifacts to use for testing
-  PROJECT_ROOT = "#{__dir__}/../../.."
+  PROJECT_ROOT = "#{__dir__}/../../../.."
   EXM_130_MEASURE = FHIR::Measure.new load_json_fixture('measure-EXM130_FHIR4-7.2.000')
   EXM_130_MAIN_LIBRARY = FHIR::Library.new load_json_fixture('library-EXM130_FHIR4-7.2.000')
   EXM_130_DEPENDENT_LIBRARY_BUNDLE = FHIR::Bundle.new load_json_fixture('library-deps-EXM130_FHIR4-7.2.000-bundle')

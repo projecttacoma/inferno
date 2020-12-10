@@ -12,6 +12,7 @@ require 'pry'
 require 'pry-byebug'
 require 'dm-core'
 require 'dm-migrations'
+require 'json/jwt'
 require 'jwt'
 require 'kramdown'
 

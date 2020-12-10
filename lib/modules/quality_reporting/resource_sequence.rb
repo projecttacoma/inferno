@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'securerandom'
-require_relative '../../utils/measure_operations'
-require_relative '../../utils/bundle'
+require_relative '../../app/utils/measure_operations'
+require_relative '../../app/utils/bundle'
 
 module Inferno
   module Sequence

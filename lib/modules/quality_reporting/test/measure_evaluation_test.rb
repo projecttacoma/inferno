@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path '../../test_helper.rb', __dir__
+require_relative '../../../../test/test_helper'
 
 class MeasureEvaluationSequenceTest < MiniTest::Test
   def setup

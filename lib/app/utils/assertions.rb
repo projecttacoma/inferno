@@ -27,11 +27,10 @@ module Inferno
       message = "Bad response code: expected 200, 201, but found #{response.code}. #{error_message}"
       assert [200, 201].include?(response.code), message
     end
-
+ 
     def assert_response_created(response, error_message = '')
-      return if assertion_negated([201].include?(response.code))
-
-      raise AssertionException, "Bad response code: expected 201, but found #{response.code}. #{error_message}"
+      message = "Bad response code: expected 201, but found #{response.code}. #{error_message}"
+      assert [201].include?(response.code), message
     end
 
     def assert_response_accepted(response)
