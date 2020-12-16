@@ -24,7 +24,7 @@ module Inferno
         metadata do
           id '01'
           link 'http://www.hl7.org/fhir/operation-measure-evaluate-measure.html'
-          desc 'Run the $evaluate-measure operation for a measure, results should match those reported by CQF-Ruler'
+          description 'Run the $evaluate-measure operation for a measure, results should match those reported by CQF-Ruler'
         end
 
         measure_id = @instance.measure_to_test

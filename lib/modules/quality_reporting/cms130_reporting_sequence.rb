@@ -48,7 +48,7 @@ module Inferno
         metadata do
           id '01'
           link 'https://www.hl7.org/fhir/operation-measure-evaluate-measure.html'
-          desc 'Run the $evaluate-measure operation for an individual that should be in the IPP and Denominator'
+          description 'Run the $evaluate-measure operation for an individual that should be in the IPP and Denominator'
         end
 
         # Check that measure exists
@@ -80,7 +80,7 @@ module Inferno
         metadata do
           id '02'
           link 'https://hl7.org/fhir/measure-operation-collect-data.html'
-          desc 'Run the $collect-data operation for a measure that should contain an individual in the IPP, Denominator, and Numerator'
+          description 'Run the $collect-data operation for a measure that should contain an individual in the IPP, Denominator, and Numerator'
         end
 
         # Check that measure exists

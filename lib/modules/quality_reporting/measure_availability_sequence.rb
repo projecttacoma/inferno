@@ -19,7 +19,7 @@ module Inferno
         metadata do
           id '01'
           link 'https://www.hl7.org/fhir/measure.html'
-          desc 'Check to make sure specified measure is available on test server'
+          description 'Check to make sure specified measure is available on test server'
         end
 
         # Look for matching measure from cqf-ruler datastore by resource id

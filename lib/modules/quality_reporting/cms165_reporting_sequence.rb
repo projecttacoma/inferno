@@ -32,7 +32,7 @@ module Inferno
         metadata do
           id '01'
           link 'https://www.hl7.org/fhir/operation-measure-evaluate-measure.html'
-          desc 'Run the $evaluate-measure operation for an individual that should be in the IPP and Denominator'
+          description 'Run the $evaluate-measure operation for an individual that should be in the IPP and Denominator'
         end
 
         # Parameters appended to the url for $evaluate-measure call

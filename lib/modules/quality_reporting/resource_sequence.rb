@@ -19,7 +19,7 @@ module Inferno
         metadata do
           id '01'
           link 'https://www.hl7.org/fhir/http.html#ops'
-          desc 'Add a resource using a POST request, then verify it is available'
+          description 'Add a resource using a POST request, then verify it is available'
         end
 
         @client.additional_headers = { 'x-api-key': @instance.api_key, 'Authorization': @instance.auth_header } if @instance.api_key && @instance.auth_header

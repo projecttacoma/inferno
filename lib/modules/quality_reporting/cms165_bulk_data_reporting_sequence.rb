@@ -27,7 +27,7 @@ module Inferno
         metadata do
           id '01'
           link 'https://github.com/smart-on-fhir/bulk-import/blob/master/import.md'
-          desc 'Run bulk data $import operation for CMS165'
+          description 'Run bulk data $import operation for CMS165'
         end
 
         BUNDLES = [
