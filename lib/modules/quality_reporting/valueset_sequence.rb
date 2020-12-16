@@ -16,7 +16,7 @@ module Inferno
         metadata do
           id '01'
           link 'https://www.hl7.org/fhir/operation-valueset-expand.html'
-          desc 'Expand each Value Set in a measure to ensure they are available'
+          description 'Expand each Value Set in a measure to ensure they are available'
         end
 
         @client.additional_headers = { 'x-api-key': @instance.api_key, 'Authorization': @instance.auth_header } if @instance.api_key && @instance.auth_header
