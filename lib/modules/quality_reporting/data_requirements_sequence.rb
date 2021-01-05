@@ -26,7 +26,8 @@ module Inferno
         end
 
         assert(!@instance.measure_to_test.nil?, 'No measure selected. You must run the Prerequisite sequences prior to running this sequence.')
-        
+        measure_id = @instance.measure_to_test
+
         # Get data requirements from cqf-ruler
         expected_results_library = get_data_requirements(measure_id, PARAMS.compact)
         expectedDR = expected_results_library.dataRequirement
