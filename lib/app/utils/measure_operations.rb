@@ -122,7 +122,7 @@ module Inferno
     def get_data_requirements(measure_id, params = {})
       endpoint = Inferno::CQF_RULER + 'Measure'
       params_string = params.empty? ? '' : "?#{params.to_query}"
-      data_requirements_response = cqf_ruler_client.client.get("#{measure_evaluation_endpoint}/#{measure_id}/$data-requirements#{params_string}")
+      data_requirements_response = cqf_ruler_client.client.get("#{endpoint}/#{measure_id}/$data-requirements#{params_string}")
       raise StandardError, "Could not retrieve data_requirements for measure #{measure_id} from CQF Ruler." if data_requirements_response.code != 200
 
       FHIR::Library.new JSON.parse(data_requirements_response.body)

@@ -32,7 +32,7 @@ module Inferno
         measure_identifier = measure_resource.resource.identifier.find { |id| id.system == 'http://hl7.org/fhir/cqi/ecqm/Measure/Identifier/cms' }
         measure_version = measure_resource.resource.version
         query_response = @client.search(FHIR::Measure, search: { parameters: { identifier: measure_identifier.value, version: measure_version } })
-        assert_equal query_response.resource.total, 1, "Expected to find measure with id #{measure_id}"
+        assert_equal 1, query_response.resource.total, "Expected to find measure with id #{measure_id}"
 
         # Update instance variable to be the ID we get back from the SUT
         @instance.measure_to_test = query_response.resource.entry.first.resource.id
