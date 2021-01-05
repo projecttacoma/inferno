@@ -13,6 +13,15 @@ module Inferno
       @client.get "Measure/#{measure_id}/$evaluate-measure#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
     end
 
+    # Run the $data-requirements operation for the given Measure
+    #
+    # measure_id - ID of the Measure to get data requirements for
+    # params - hash of params to form a query in the GET request url
+    def data_requirements(measure_id, params = {})
+      params_string = params.empty? ? '' : "?#{params.to_query}"
+      @client.get "Measure/#{measure_id}/$data-requirements#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
+    end
+
     def create_measure_report(measure_id, patient_id, period_start, period_end)
       FHIR::MeasureReport.new.from_hash(
         type: 'data-collection',
@@ -56,11 +65,6 @@ module Inferno
     def collect_data(measure_id, params = {})
       params_string = params.empty? ? '' : "?#{params.to_query}"
       @client.get "Measure/#{measure_id}/$collect-data#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
-    end
-
-    def data_requirements
-      # TODO
-      nil
     end
 
     def get_measure_resources_by_name(measure_name)
@@ -113,6 +117,15 @@ module Inferno
       raise StandardError, "Could not retrieve measure_evaluation #{measure_id} from CQF Ruler." if evaluation_response.code != 200
 
       FHIR::MeasureReport.new JSON.parse(evaluation_response.body)
+    end
+
+    def get_data_requirements(measure_id, params = {})
+      endpoint = Inferno::CQF_RULER + 'Measure'
+      params_string = params.empty? ? '' : "?#{params.to_query}"
+      data_requirements_response = cqf_ruler_client.client.get("#{measure_evaluation_endpoint}/#{measure_id}/$data-requirements#{params_string}")
+      raise StandardError, "Could not retrieve data_requirements for measure #{measure_id} from CQF Ruler." if data_requirements_response.code != 200
+
+      FHIR::Library.new JSON.parse(data_requirements_response.body)
     end
 
     def get_library_resource(library_id)
