@@ -22,6 +22,11 @@ module Inferno
       @client.get "Measure/#{measure_id}/$data-requirements#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
     end
 
+    def query(endpoint, params = {})
+      params_string = params.empty? ? '' : "?#{params.to_query}"
+      @client.get "#{endpoint}#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
+    end
+
     def create_measure_report(measure_id, patient_id, period_start, period_end)
       FHIR::MeasureReport.new.from_hash(
         type: 'data-collection',
@@ -126,6 +131,15 @@ module Inferno
       raise StandardError, "Could not retrieve data_requirements for measure #{measure_id} from CQF Ruler." if data_requirements_response.code != 200
 
       FHIR::Library.new JSON.parse(data_requirements_response.body)
+    end
+
+    def get_query(endpoint, params = {})
+      endpoint = Inferno::CQF_RULER + endpoint
+      params_string = params.empty? ? '' : "?#{params.to_query}"
+      response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
+      raise StandardError, "Could not retrieve #{endpoint} from CQF Ruler." if response.code != 200
+
+      FHIR.from_contents(JSON.parse(response.body))
     end
 
     def get_library_resource(library_id)

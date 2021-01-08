@@ -45,6 +45,9 @@ module Inferno
         assert((expectedDR-actualDR).blank?, "Client data-requirements is missing expected data requirements for measure #{measure_id}")
         assert((actualDR-expectedDR).blank?, "Client data-requirements contains unexpected data requirements for measure #{measure_id}")
 
+        # store data requirements for future sequence use
+        @instance.data_requirements = actualDR
+
       end
     end
   end

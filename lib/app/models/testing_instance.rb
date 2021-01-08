@@ -40,6 +40,8 @@ module Inferno
       property :id_token, String
       property :refresh_token, String
       property :measure_to_test, String
+      property :data_requirements, Array
+      propert :submission_data, Array
       property :created_at, DateTime, default: proc { DateTime.now }
 
       property :oauth_introspection_endpoint, String
