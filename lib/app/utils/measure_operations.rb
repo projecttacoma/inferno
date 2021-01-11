@@ -159,5 +159,23 @@ module Inferno
         .uniq
         .to_a
     end
+
+    def get_data_requirements_queries(data_requirement)
+      # hashes with { endpoint => FHIR Type, params => { queries } }
+      data_requirement
+        .select { |dr| !dr.codeFilter.nil? && !dr.codeFilter.first.nil? }
+        .map do |dr|
+          q = { 'endpoint' => dr.type, 'params' => {} }
+
+          # prefer specific code filter first before valueSet
+          if !dr.codeFilter.first.code&.first.nil?
+            q['params'][dr.codeFilter.first.path.to_s] = dr.codeFilter.first.code.first.code
+          elsif !dr.codeFilter.first.valueSet.nil?
+            q['params']["#{dr.codeFilter.first.path}:in"] = dr.codeFilter.first.valueSet
+          end
+
+          q
+        end
+    end
   end
 end
