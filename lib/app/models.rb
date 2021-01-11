@@ -11,6 +11,7 @@ require_relative 'models/test_result'
 require_relative 'models/test_warning'
 require_relative 'models/testing_instance'
 require_relative 'models/sequence_requirement'
+require_relative 'models/data_requirements_query'
 
 DataMapper.finalize
 

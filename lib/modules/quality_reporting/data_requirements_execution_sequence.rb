@@ -10,13 +10,9 @@ module Inferno
 
       test_id_prefix 'data_requirements_execution'
 
-      description 'Ensure that data requirements relevant to a measure can be used to execute corresponding data queries'
+      requires :data_requirements_queries
 
-      # # TODO: do any parameters need to be passed in with the generated queries?
-      PARAMS = {
-        # 'periodStart': '2019-01-01',
-        # 'periodEnd': '2019-12-31'
-      }.freeze
+      description 'Ensure that data requirements relevant to a measure can be used to execute corresponding data queries'
 
       test 'Generated Data Requirements FHIR query valid response' do
         metadata do
@@ -25,21 +21,12 @@ module Inferno
           description 'Generate data requirements queries, execute wueries, and verify valid response.'
         end
 
-        
-        assert(!@instance.data_requirements.nil?, 'No data requirements have been collected. You must successfully run the DataRequirements sequence prior to running this sequence.')
-        # TODO: use data requirements from previous (data requirements) sequence to generate data requirements FHIR queries
-        @instance.data_requirements
-        dr_queries = []
+        assert(!@instance.data_requirements_queries.nil?, 'No data requirements have been collected. You must successfully run the DataRequirements sequence prior to running this sequence.')
 
-        # TODO: validate the below. 
-        # Assumes dr_queries is an array of endpoint url strings that can be added to the client or cqf ruler base and executed
-        # Creates submission_data as an array of json responses each corresponding to a query
-
-        @instance.submission_data = []
         # execute queries
-        dr_queries.each do |q|
-          expected_data = get_query(q, PARAMS.compact) # from cqf ruler
-          response = query(q, PARAMS.compact) # from client
+        @instance.data_requirements_queries.each do |q|
+          expected_data = get_query(q[:endpoint], q[:params]) # from cqf ruler
+          response = query(q[:endpoint], q[:params]) # from client
 
           # validate response
           assert_response_ok response
@@ -47,8 +34,7 @@ module Inferno
           assert(!data.nil?, "Client provided no data response to query #{q}")
           assert_equal(expected_data, data, "Client response did not match expected for query #{q}")
 
-          # make results available to next (submit data) sequence
-          @instance.submission_data << data
+          # TODO: make results available to next (submit data) sequence
         end
       end
     end
