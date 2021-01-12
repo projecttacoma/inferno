@@ -194,8 +194,16 @@ module Inferno
         .map do |q|
           endpoint = Inferno::CQF_RULER + q.endpoint
           params_string = q.params.empty? ? '' : "?#{q.params.to_query}"
-          response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
-          response.body
+          
+          begin
+            response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
+            code = response.code
+          rescue RestClient::NotFound => e
+            code = 404
+          end
+          
+          # TODO: get rid of this backup call (replace with assertion) once we have a working fhir server source for valueset search
+          response = cqf_ruler_client.client.get("#{endpoint}") if code != 200
 
           bundle = FHIR::Bundle.new JSON.parse(response.body)
           bundle.entry.map(&:resource)

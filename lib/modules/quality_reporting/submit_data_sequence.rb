@@ -12,6 +12,8 @@ module Inferno
 
       test_id_prefix 'submit_data'
 
+      requires :data_requirements_queries
+
       description 'Ensure that resources relevant to a measure can be submitted via the $submit-data operation'
 
       test 'Submit Data valid submission' do
@@ -25,21 +27,9 @@ module Inferno
 
         @client.additional_headers = { 'x-api-key': @instance.api_key, 'Authorization': @instance.auth_header } if @instance.api_key && @instance.auth_header
 
-        # TODO: Replace this logic with resources that come from data requirements queries
         # TODO: How do we decide which patient we are submitting for, if applicable???
 
-        # Get the patient data to submit. We currently support cms124, cms130 only
-        patient_bundle_path = case @instance.measure_to_test
-                              when 'measure-EXM124-FHIR4-8.2.000', 'measure-exm124-FHIR4'
-                                '../../../resources/quality_reporting/CMS124/Bundle/cms124-patient-bundle.json'
-                              when 'measure-EXM130-FHIR4-7.2.000', 'measure-exm130-FHIR4'
-                                '../../../resources/quality_reporting/CMS130/Bundle/cms130-patient-bundle.json'
-                              end
-
-        patient_file = File.expand_path(patient_bundle_path, __dir__)
-        patient_bundle = FHIR::Json.from_json(File.read(patient_file))
-        # TODO: Use resources from search set bundles
-        resources = patient_bundle.entry.map(&:resource)
+        resources = get_data_requirements_resources(@instance.data_requirements_queries)
         measure_report = create_measure_report(@instance.measure_to_test, '2019', '2019')
 
         # Submit the data
