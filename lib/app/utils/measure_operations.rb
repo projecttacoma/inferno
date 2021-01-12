@@ -190,12 +190,17 @@ module Inferno
     end
 
     def get_data_requirements_resources(queries)
-      queries.map do |q|
-        endpoint = Inferno::CQF_RULER + q.endpoint
-        params_string = q.params.empty? ? '' : "?#{q.params.to_query}"
-        response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
-        response.body
-      end
+      queries
+        .map do |q|
+          endpoint = Inferno::CQF_RULER + q.endpoint
+          params_string = q.params.empty? ? '' : "?#{q.params.to_query}"
+          response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
+          response.body
+
+          bundle = FHIR::Bundle.new JSON.parse(response.body)
+          bundle.entry.map(&:resource)
+        end
+      .flatten
     end
   end
 end
