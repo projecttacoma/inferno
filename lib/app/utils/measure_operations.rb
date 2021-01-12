@@ -27,15 +27,12 @@ module Inferno
       @client.get "#{endpoint}#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
     end
 
-    def create_measure_report(measure_id, patient_id, period_start, period_end)
+    def create_measure_report(measure_id, period_start, period_end)
       FHIR::MeasureReport.new.from_hash(
         type: 'data-collection',
         identifier: [{
           value: SecureRandom.uuid
         }],
-        patient: {
-          reference: "Patient/#{patient_id}"
-        },
         measure: {
           reference: "Measure/#{measure_id}"
         },
@@ -190,6 +187,15 @@ module Inferno
 
           q
         end
+    end
+
+    def get_data_requirements_resources(queries)
+      queries.map do |q|
+        endpoint = Inferno::CQF_RULER + q.endpoint
+        params_string = q.params.empty? ? '' : "?#{q.params.to_query}"
+        response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
+        response.body
+      end
     end
   end
 end
