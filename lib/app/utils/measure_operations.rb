@@ -39,13 +39,15 @@ module Inferno
         period: {
           start: period_start,
           end: period_end
-        }
+        },
+        status: 'complete'
       )
     end
 
     def submit_data(measure_id, patient_resources, measure_report)
       parameters = FHIR::Parameters.new
-      measure_report_param = FHIR::Parameters::Parameter.new(name: 'measure-report')
+      # TODO: this should ideally be named "measureReport" from spec: https://www.hl7.org/fhir/measure-operation-submit-data.html
+      measure_report_param = FHIR::Parameters::Parameter.new(name: 'measurereport')
       measure_report_param.resource = measure_report
       parameters.parameter.push(measure_report_param)
 
@@ -174,14 +176,14 @@ module Inferno
     def get_data_requirements_queries(data_requirement)
       # hashes with { endpoint => FHIR Type, params => { queries } }
       data_requirement
-        .select { |dr| !dr.codeFilter.nil? && !dr.codeFilter.first.nil? }
+        .select { |dr| dr&.codeFilter&.first&.code&.first || dr&.codeFilter&.first&.valueSet }
         .map do |dr|
           q = { 'endpoint' => dr.type, 'params' => {} }
 
           # prefer specific code filter first before valueSet
-          if !dr.codeFilter.first.code&.first.nil?
+          if dr.codeFilter.first.code&.first
             q['params'][dr.codeFilter.first.path.to_s] = dr.codeFilter.first.code.first.code
-          elsif !dr.codeFilter.first.valueSet.nil?
+          elsif dr.codeFilter.first.valueSet
             q['params']["#{dr.codeFilter.first.path}:in"] = dr.codeFilter.first.valueSet
           end
 
@@ -196,6 +198,7 @@ module Inferno
           params_string = q.params.empty? ? '' : "?#{q.params.to_query}"
           
           begin
+            # TODO: run query through unlogged rest client
             response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
             code = response.code
           rescue RestClient::NotFound => e
@@ -208,7 +211,7 @@ module Inferno
           bundle = FHIR::Bundle.new JSON.parse(response.body)
           bundle.entry.map(&:resource)
         end
-      .flatten
+      .flatten.uniq{|r| r.id}
     end
   end
 end
