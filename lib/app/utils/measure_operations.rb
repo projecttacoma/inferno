@@ -150,10 +150,22 @@ module Inferno
 
     def get_library_resource(library_id)
       libraries_endpoint = Inferno::CQF_RULER + 'Library'
-      library_request = cqf_ruler_client.client.get("#{libraries_endpoint}/#{library_id}")
+      library_request = cqf_ruler_client.search(FHIR::Library, search: { parameters: { url: library_id } })
       raise StandardError, "Could not retrieve library #{library_id} from CQF Ruler." if library_request.code != 200
 
-      FHIR::Library.new JSON.parse(library_request.body)
+      lib = nil
+      if library_request.resource.total == 0
+        library_request = cqf_ruler_client.read(FHIR::Library, library_id)
+        raise StandardError, "Could not retrieve library #{library_id} from CQF Ruler." if library_request.code != 200
+
+        lib = library_request.resource
+      else
+        # Take first entry of response bundle
+        lib = library_request.resource.entry.first.resource
+      end
+
+      raise StandardError, "Error obtaining library #{library_id} from response body" if lib.nil?
+      lib
     end
 
     def get_all_dependent_valuesets(measure_id)
@@ -169,7 +181,10 @@ module Inferno
 
     def get_required_library_ids(library)
       refs = library.relatedArtifact.select { |ref| ref.type == 'depends-on' }
-      refs.map { |ref| ref.resource.sub 'Library/', '' }
+      refs.lazy
+        .select { |ref| ref.resource.include? 'Library/' }
+        .map{ |ref| ref.resource.split('|').first }
+        .to_a
     end
 
     def get_valueset_urls(library)
