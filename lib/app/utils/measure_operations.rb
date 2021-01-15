@@ -52,6 +52,13 @@ module Inferno
       parameters.parameter.push(measure_report_param)
 
       patient_resources.each do |r|
+        # create unique identifier if not present on resource
+        if !r.identifier&.first&.value
+          i = FHIR::Identifier.new
+          i.value = SecureRandom.uuid
+          r.identifier = [i]
+        end
+
         resource_param = FHIR::Parameters::Parameter.new(name: 'resource')
         resource_param.resource = r
         parameters.parameter.push(resource_param)
