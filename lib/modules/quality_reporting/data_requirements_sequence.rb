@@ -30,7 +30,7 @@ module Inferno
 
         # Get data requirements from cqf-ruler
         expected_results_library = get_data_requirements(measure_id, PARAMS.compact)
-        expectedDR = expected_results_library.dataRequirement
+        expected_dr = expected_results_library.dataRequirement
 
         # Get data requirements from client
         data_requirements_response = data_requirements(measure_id, PARAMS.compact)
@@ -38,13 +38,17 @@ module Inferno
 
         # Load response body into a FHIR Library class, expected to contain dataRequirement array
         data_library = FHIR.from_contents(data_requirements_response.body)
-        actualDR = data_library&.dataRequirement
-        assert(!actualDR.nil?, "Client provided no data requirements for measure #{measure_id}")
+        actual_dr = data_library&.dataRequirement
+        assert(!actual_dr.nil?, "Client provided no data requirements for measure #{measure_id}")
 
         # Compare data requirements to expected
-        assert((expectedDR-actualDR).blank?, "Client data-requirements is missing expected data requirements for measure #{measure_id}")
-        assert((actualDR-expectedDR).blank?, "Client data-requirements contains unexpected data requirements for measure #{measure_id}")
+        assert((expected_dr - actual_dr).blank?, "Client data-requirements is missing expected data requirements for measure #{measure_id}")
+        assert((actual_dr - expected_dr).blank?, "Client data-requirements contains unexpected data requirements for measure #{measure_id}")
 
+        # store data requirements queries for future sequence use
+        queries = get_data_requirements_queries(actual_dr)
+        @instance.update(data_requirements_queries: queries)
+        @instance.save!
       end
     end
   end

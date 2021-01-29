@@ -22,32 +22,43 @@ module Inferno
       @client.get "Measure/#{measure_id}/$data-requirements#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
     end
 
-    def create_measure_report(measure_id, patient_id, period_start, period_end)
+    def query(endpoint, params = {})
+      params_string = params.empty? ? '' : "?#{params.to_query}"
+      @client.get "#{endpoint}#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
+    end
+
+    def create_measure_report(measure_id, period_start, period_end)
       FHIR::MeasureReport.new.from_hash(
         type: 'data-collection',
         identifier: [{
           value: SecureRandom.uuid
         }],
-        patient: {
-          reference: "Patient/#{patient_id}"
-        },
         measure: {
           reference: "Measure/#{measure_id}"
         },
         period: {
           start: period_start,
           end: period_end
-        }
+        },
+        status: 'complete'
       )
     end
 
     def submit_data(measure_id, patient_resources, measure_report)
       parameters = FHIR::Parameters.new
-      measure_report_param = FHIR::Parameters::Parameter.new(name: 'measure-report')
+      # TODO: this should ideally be named "measureReport" from spec: https://www.hl7.org/fhir/measure-operation-submit-data.html
+      measure_report_param = FHIR::Parameters::Parameter.new(name: 'measurereport')
       measure_report_param.resource = measure_report
       parameters.parameter.push(measure_report_param)
 
       patient_resources.each do |r|
+        # create unique identifier if not present on resource
+        if !r.identifier&.first&.value
+          i = FHIR::Identifier.new
+          i.value = SecureRandom.uuid
+          r.identifier = [i]
+        end
+
         resource_param = FHIR::Parameters::Parameter.new(name: 'resource')
         resource_param.resource = r
         parameters.parameter.push(resource_param)
@@ -128,12 +139,33 @@ module Inferno
       FHIR::Library.new JSON.parse(data_requirements_response.body)
     end
 
+    def get_query(endpoint, params = {})
+      endpoint = Inferno::CQF_RULER + endpoint
+      params_string = params.empty? ? '' : "?#{params.to_query}"
+      response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
+      raise StandardError, "Could not retrieve #{endpoint} from CQF Ruler." if response.code != 200
+
+      FHIR.from_contents(JSON.parse(response.body))
+    end
+
     def get_library_resource(library_id)
       libraries_endpoint = Inferno::CQF_RULER + 'Library'
-      library_request = cqf_ruler_client.client.get("#{libraries_endpoint}/#{library_id}")
+      library_request = cqf_ruler_client.search(FHIR::Library, search: { parameters: { url: library_id } })
       raise StandardError, "Could not retrieve library #{library_id} from CQF Ruler." if library_request.code != 200
 
-      FHIR::Library.new JSON.parse(library_request.body)
+      lib = nil
+      if library_request.resource.total == 0
+        library_request = cqf_ruler_client.read(FHIR::Library, library_id)
+        raise StandardError, "Could not retrieve library #{library_id} from CQF Ruler." if library_request.code != 200
+
+        lib = library_request.resource
+      else
+        # Take first entry of response bundle
+        lib = library_request.resource.entry.first.resource
+      end
+
+      raise StandardError, "Error obtaining library #{library_id} from response body" if lib.nil?
+      lib
     end
 
     def get_all_dependent_valuesets(measure_id)
@@ -149,7 +181,10 @@ module Inferno
 
     def get_required_library_ids(library)
       refs = library.relatedArtifact.select { |ref| ref.type == 'depends-on' }
-      refs.map { |ref| ref.resource.sub 'Library/', '' }
+      refs.lazy
+        .select { |ref| ref.resource.include? 'Library/' }
+        .map{ |ref| ref.resource.split('|').first }
+        .to_a
     end
 
     def get_valueset_urls(library)
@@ -163,19 +198,42 @@ module Inferno
     def get_data_requirements_queries(data_requirement)
       # hashes with { endpoint => FHIR Type, params => { queries } }
       data_requirement
-        .select { |dr| !dr.codeFilter.nil? && !dr.codeFilter.first.nil? }
+        .select { |dr| dr&.codeFilter&.first&.code&.first || dr&.codeFilter&.first&.valueSet }
         .map do |dr|
           q = { 'endpoint' => dr.type, 'params' => {} }
 
           # prefer specific code filter first before valueSet
-          if !dr.codeFilter.first.code&.first.nil?
+          if dr.codeFilter.first.code&.first
             q['params'][dr.codeFilter.first.path.to_s] = dr.codeFilter.first.code.first.code
-          elsif !dr.codeFilter.first.valueSet.nil?
+          elsif dr.codeFilter.first.valueSet
             q['params']["#{dr.codeFilter.first.path}:in"] = dr.codeFilter.first.valueSet
           end
 
           q
         end
+    end
+
+    def get_data_requirements_resources(queries)
+      queries
+        .map do |q|
+          endpoint = Inferno::CQF_RULER + q.endpoint
+          params_string = q.params.empty? ? '' : "?#{q.params.to_query}"
+          
+          begin
+            # TODO: run query through unlogged rest client
+            response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
+            code = response.code
+          rescue RestClient::NotFound => e
+            code = 404
+          end
+          
+          # TODO: get rid of this backup call (replace with assertion) once we have a working fhir server source for valueset search
+          response = cqf_ruler_client.client.get("#{endpoint}") if code != 200
+
+          bundle = FHIR::Bundle.new JSON.parse(response.body)
+          bundle.entry.map(&:resource)
+        end
+      .flatten.uniq{|r| r.id}
     end
   end
 end

@@ -16,9 +16,9 @@ test_sets:
         overview: The server correctly handles reporting actions.
         sequences:
           - ResourceSequence
+          - DataRequirementsSequence
           - SubmitDataSequence
           - MeasureEvaluationSequence
-          - DataRequirementsSequence
       #- name: CMS165 Bulk Data Reporting
         #sequences:
           #- CMS165BulkDataReportingSequence

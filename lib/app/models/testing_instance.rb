@@ -67,7 +67,7 @@ module Inferno
       # Auth credentials
       property :api_key, String
       property :auth_header, String
-      
+
       # Bulk Data Parameters
       property :bulk_url, String
       property :bulk_token_endpoint, String
@@ -90,6 +90,7 @@ module Inferno
       has n, :resource_references
       has n, :sequence_requirements
       has 1, :server_capabilities
+      has n, :data_requirements_queries
 
       def latest_results
         sequence_results.each_with_object({}) do |result, hash|

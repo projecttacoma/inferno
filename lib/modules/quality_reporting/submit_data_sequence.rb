@@ -12,6 +12,8 @@ module Inferno
 
       test_id_prefix 'submit_data'
 
+      requires :data_requirements_queries
+
       description 'Ensure that resources relevant to a measure can be submitted via the $submit-data operation'
 
       test 'Submit Data valid submission' do
@@ -25,21 +27,10 @@ module Inferno
 
         @client.additional_headers = { 'x-api-key': @instance.api_key, 'Authorization': @instance.auth_header } if @instance.api_key && @instance.auth_header
 
-        # Get the patient data to submit. We currently support cms124, cms130 only
-        patient_bundle_path = case @instance.measure_to_test
-                              when 'measure-EXM124-FHIR4-8.2.000', 'measure-exm124-FHIR4'
-                                '../../../resources/quality_reporting/CMS124/Bundle/cms124-patient-bundle.json'
-                              when 'measure-EXM130-FHIR4-7.2.000', 'measure-exm130-FHIR4'
-                                '../../../resources/quality_reporting/CMS130/Bundle/cms130-patient-bundle.json'
-                                # when 'measure-exm165-FHIR4' # TODO: update cms165-patient-bundle to r4 when new bundles are available
-                                # '../../../resources/quality_reporting/CMS165/Bundle/cms165-patient-bundle.json'
-                              end
+        # TODO: How do we decide which patient we are submitting for, if applicable???
 
-        patient_file = File.expand_path(patient_bundle_path, __dir__)
-        patient_bundle = FHIR::Json.from_json(File.read(patient_file))
-        resources = patient_bundle.entry.map(&:resource)
-        patient = resources.first { |r| r.resourceType == 'Patient' }
-        measure_report = create_measure_report(@instance.measure_to_test, patient.id, '2019', '2019')
+        resources = get_data_requirements_resources(@instance.data_requirements_queries)
+        measure_report = create_measure_report(@instance.measure_to_test, '2019', '2019')
 
         # Submit the data
         submit_data_response = submit_data(@instance.measure_to_test, resources, measure_report)
