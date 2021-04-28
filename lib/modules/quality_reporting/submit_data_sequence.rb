@@ -57,7 +57,7 @@ module Inferno
         metadata do
           id '02'
           link 'https://www.hl7.org/fhir/measure-operation-submit-data.html'
-          description 'Submit resources relevant to a measure, and then verify they persist on the server.'
+          description 'Submit a single resource relevant to a measure, and then verify it persisted on the server.'
         end
 
         assert(!@instance.measure_to_test.nil?, 'No measure selected. You must run the Prerequisite sequences prior to running Reporting Actions sequences.')
