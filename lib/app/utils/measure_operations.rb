@@ -46,14 +46,13 @@ module Inferno
 
     def submit_data(measure_id, patient_resources, measure_report)
       parameters = FHIR::Parameters.new
-      # TODO: this should ideally be named "measureReport" from spec: https://www.hl7.org/fhir/measure-operation-submit-data.html
-      measure_report_param = FHIR::Parameters::Parameter.new(name: 'measurereport')
+      measure_report_param = FHIR::Parameters::Parameter.new(name: 'measureReport')
       measure_report_param.resource = measure_report
       parameters.parameter.push(measure_report_param)
 
       patient_resources.each do |r|
         # create unique identifier if not present on resource
-        if !r.identifier&.first&.value
+        unless r.identifier&.first&.value
           i = FHIR::Identifier.new
           i.value = SecureRandom.uuid
           r.identifier = [i]
@@ -165,6 +164,7 @@ module Inferno
       end
 
       raise StandardError, "Error obtaining library #{library_id} from response body" if lib.nil?
+
       lib
     end
 
@@ -183,7 +183,7 @@ module Inferno
       refs = library.relatedArtifact.select { |ref| ref.type == 'depends-on' }
       refs.lazy
         .select { |ref| ref.resource.include? 'Library/' }
-        .map{ |ref| ref.resource.split('|').first }
+        .map { |ref| ref.resource.split('|').first }
         .to_a
     end
 
@@ -216,24 +216,31 @@ module Inferno
     def get_data_requirements_resources(queries)
       queries
         .map do |q|
-          endpoint = Inferno::CQF_RULER + q.endpoint
-          params_string = q.params.empty? ? '' : "?#{q.params.to_query}"
-          
-          begin
-            # TODO: run query through unlogged rest client
-            response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
-            code = response.code
-          rescue RestClient::NotFound => e
-            code = 404
-          end
-          
-          # TODO: get rid of this backup call (replace with assertion) once we have a working fhir server source for valueset search
-          response = cqf_ruler_client.client.get("#{endpoint}") if code != 200
+        endpoint = Inferno::CQF_RULER + q.endpoint
+        params_string = q.params.empty? ? '' : "?#{q.params.to_query}"
 
-          bundle = FHIR::Bundle.new JSON.parse(response.body)
-          bundle.entry.map(&:resource)
+        begin
+          # TODO: run query through unlogged rest client
+          response = cqf_ruler_client.client.get("#{endpoint}#{params_string}")
+          code = response.code
+        rescue RestClient::PreconditionFailed
+          # TODO: Happens with niche codesystem error on HAPI systems. Fix need for this
+          code = 412
+        rescue RestClient::NotFound
+          code = 404
         end
-      .flatten.uniq{|r| r.id}
+
+        bundle = FHIR::Bundle.new JSON.parse(response.body)
+
+        # TODO: get rid of this backup call (replace with assertion) once we have a working fhir server source for valueset search
+        if code != 200 || bundle.total.zero?
+          response = cqf_ruler_client.client.get(endpoint.to_s)
+          bundle = FHIR::Bundle.new JSON.parse(response.body)
+        end
+
+        bundle.entry.map(&:resource)
+      end
+        .flatten.uniq(&:id)
     end
   end
 end

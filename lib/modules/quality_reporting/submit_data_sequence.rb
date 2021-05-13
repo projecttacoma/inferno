@@ -30,7 +30,7 @@ module Inferno
         # TODO: How do we decide which patient we are submitting for, if applicable???
 
         resources = get_data_requirements_resources(@instance.data_requirements_queries)
-        measure_report = create_measure_report(@instance.measure_to_test, '2019', '2019')
+        measure_report = create_measure_report(@instance.measure_to_test, '2019-01-01', '2019-12-31')
 
         # Submit the data
         submit_data_response = submit_data(@instance.measure_to_test, resources, measure_report)
