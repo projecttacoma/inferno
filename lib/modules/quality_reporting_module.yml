@@ -18,7 +18,7 @@ test_sets:
           - ResourceSequence
           - DataRequirementsSequence
           - SubmitDataSequence
-          - MeasureEvaluationSequence
+          #- MeasureEvaluationSequence
       #- name: CMS165 Bulk Data Reporting
         #sequences:
           #- CMS165BulkDataReportingSequence

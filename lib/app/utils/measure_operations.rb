@@ -19,6 +19,8 @@ module Inferno
     # params - hash of params to form a query in the GET request url
     def data_requirements(measure_id, params = {})
       params_string = params.empty? ? '' : "?#{params.to_query}"
+
+      # TODO: Call on embedded cqf-ruler client if UniFHIR doesn't support $data-requirements
       @client.get "Measure/#{measure_id}/$data-requirements#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
     end
 
@@ -230,10 +232,19 @@ module Inferno
           code = 404
         end
 
-        bundle = FHIR::Bundle.new JSON.parse(response.body)
-
         # TODO: get rid of this backup call (replace with assertion) once we have a working fhir server source for valueset search
-        if code != 200 || bundle.total.zero?
+        should_redo = false
+        if code != 200
+          should_redo = true
+        else
+          bundle = FHIR::Bundle.new JSON.parse(response.body)
+
+          if bundle.total == 0
+            should_redo = true
+          end
+        end
+
+        if should_redo
           response = cqf_ruler_client.client.get(endpoint.to_s)
           bundle = FHIR::Bundle.new JSON.parse(response.body)
         end
