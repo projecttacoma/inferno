@@ -20,7 +20,6 @@ module Inferno
     def data_requirements(measure_id, params = {})
       params_string = params.empty? ? '' : "?#{params.to_query}"
 
-      # TODO: Call on embedded cqf-ruler client if UniFHIR doesn't support $data-requirements
       @client.get "Measure/#{measure_id}/$data-requirements#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
     end
 
@@ -29,15 +28,13 @@ module Inferno
       @client.get "#{endpoint}#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
     end
 
-    def create_measure_report(measure_id, period_start, period_end)
+    def create_measure_report(measure_url, period_start, period_end)
       FHIR::MeasureReport.new.from_hash(
         type: 'data-collection',
         identifier: [{
           value: SecureRandom.uuid
         }],
-        measure: {
-          reference: "Measure/#{measure_id}"
-        },
+        measure: measure_url,
         period: {
           start: period_start,
           end: period_end
@@ -81,6 +78,20 @@ module Inferno
 
     def get_measure_resources_by_name(measure_name)
       @client.get "Measure?name=#{measure_name}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
+    end
+
+    def get_measure_from_test_server(measure_identifier, measure_version)
+      get_measure_by_identifier_and_version(@client, measure_identifier, measure_version)
+    end
+
+    def get_measure_from_embedded_server(measure_identifier, measure_version)
+      get_measure_by_identifier_and_version(cqf_ruler_client, measure_identifier, measure_version)
+    end
+
+    def get_measure_by_identifier_and_version(client, measure_identifier, measure_version)
+      resp = client.search(FHIR::Measure, search: { parameters: { identifier: measure_identifier, version: measure_version } })
+      bundle = FHIR::Bundle.new JSON.parse(resp.body)
+      bundle.entry.first&.resource
     end
 
     def async_submit_data(params_resource)
@@ -150,12 +161,11 @@ module Inferno
     end
 
     def get_library_resource(library_id)
-      libraries_endpoint = Inferno::CQF_RULER + 'Library'
       library_request = cqf_ruler_client.search(FHIR::Library, search: { parameters: { url: library_id } })
       raise StandardError, "Could not retrieve library #{library_id} from CQF Ruler." if library_request.code != 200
 
       lib = nil
-      if library_request.resource.total == 0
+      if library_request.resource.zero?
         library_request = cqf_ruler_client.read(FHIR::Library, library_id)
         raise StandardError, "Could not retrieve library #{library_id} from CQF Ruler." if library_request.code != 200
 
@@ -200,22 +210,27 @@ module Inferno
     def get_data_requirements_queries(data_requirement)
       # hashes with { endpoint => FHIR Type, params => { queries } }
       data_requirement
-        .select { |dr| dr&.codeFilter&.first&.code&.first || dr&.codeFilter&.first&.valueSet }
+        .select { |dr| dr&.type }
         .map do |dr|
           q = { 'endpoint' => dr.type, 'params' => {} }
 
           # prefer specific code filter first before valueSet
-          if dr.codeFilter.first.code&.first
+          if dr.codeFilter&.first&.code&.first
             q['params'][dr.codeFilter.first.path.to_s] = dr.codeFilter.first.code.first.code
-          elsif dr.codeFilter.first.valueSet
+          elsif dr.codeFilter&.first&.valueSet
             q['params']["#{dr.codeFilter.first.path}:in"] = dr.codeFilter.first.valueSet
           end
+
+          # TODO: why is dr for 104 Medication and not MedicationRequest on cqf-ruler
+          q['endpoint'] = 'MedicationRequest' if q['endpoint'] == 'Medication'
 
           q
         end
     end
 
     def get_data_requirements_resources(queries)
+      # TODO: We should be smartly querying for patients based on what the resources reference?
+      queries.unshift('endpoint' => 'Patient', 'params' => {})
       queries
         .map do |q|
         endpoint = Inferno::CQF_RULER + q.endpoint
@@ -227,29 +242,19 @@ module Inferno
           code = response.code
         rescue RestClient::PreconditionFailed
           # TODO: Happens with niche codesystem error on HAPI systems. Fix need for this
+          # Note: calling the $updateCodeSystems endpoint on cqf-ruler should resolve this
           code = 412
         rescue RestClient::NotFound
           code = 404
         end
 
-        # TODO: get rid of this backup call (replace with assertion) once we have a working fhir server source for valueset search
-        should_redo = false
-        if code != 200
-          should_redo = true
+        # Return all resources in the response bundle if queries are met
+        if code == 200
+          bundle = FHIR::Bundle.new JSON.parse(response.body)
+          bundle.entry.map(&:resource)
         else
-          bundle = FHIR::Bundle.new JSON.parse(response.body)
-
-          if bundle.total == 0
-            should_redo = true
-          end
+          []
         end
-
-        if should_redo
-          response = cqf_ruler_client.client.get(endpoint.to_s)
-          bundle = FHIR::Bundle.new JSON.parse(response.body)
-        end
-
-        bundle.entry.map(&:resource)
       end
         .flatten.uniq(&:id)
     end

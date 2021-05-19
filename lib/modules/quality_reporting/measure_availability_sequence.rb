@@ -23,19 +23,16 @@ module Inferno
         end
 
         # Look for matching measure from cqf-ruler datastore by resource id
-        measure_id = @instance.measure_to_test
-        measure_resource = @instance.module.measures.find { |m| m.resource.id == measure_id }
+        measure_identifier, measure_version = @instance.measure_to_test.split('|')
 
         @client.additional_headers = { 'x-api-key': @instance.api_key, 'Authorization': @instance.auth_header } if @instance.api_key && @instance.auth_header
 
         # Search system for measure by identifier and version
-        measure_identifier = measure_resource.resource.identifier.find { |id| id.system == 'http://hl7.org/fhir/cqi/ecqm/Measure/Identifier/cms' }
-        measure_version = measure_resource.resource.version
-        query_response = @client.search(FHIR::Measure, search: { parameters: { identifier: measure_identifier.value, version: measure_version } })
-        assert_equal 1, query_response.resource.total, "Expected to find measure with id #{measure_id}"
+        query_response = @client.search(FHIR::Measure, search: { parameters: { identifier: measure_identifier, version: measure_version } })
 
-        # Update instance variable to be the ID we get back from the SUT
-        @instance.measure_to_test = query_response.resource.entry.first.resource.id
+        bundle = FHIR::Bundle.new JSON.parse(query_response.body)
+
+        assert bundle.total.positive?, "Expected to find measure with identifier #{measure_identifier} and version #{measure_version}"
       end
     end
   end

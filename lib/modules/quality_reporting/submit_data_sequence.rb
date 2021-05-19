@@ -25,15 +25,19 @@ module Inferno
 
         assert(!@instance.measure_to_test.nil?, 'No measure selected. You must run the Prerequisite sequences prior to running Reporting Actions sequences.')
 
+        measure_identifier, measure_version = @instance.measure_to_test.split('|')
+        measure_resource_system = get_measure_from_test_server(measure_identifier, measure_version)
+
         @client.additional_headers = { 'x-api-key': @instance.api_key, 'Authorization': @instance.auth_header } if @instance.api_key && @instance.auth_header
 
         # TODO: How do we decide which patient we are submitting for, if applicable???
 
+        # TODO: If the SUT does not support the $data-requirements operation, we could have a fallback here to get a set list of resources just to test submission
         resources = get_data_requirements_resources(@instance.data_requirements_queries)
-        measure_report = create_measure_report(@instance.measure_to_test, '2019-01-01', '2019-12-31')
+        measure_report = create_measure_report(measure_resource_system.url, '2019-01-01', '2019-12-31')
 
         # Submit the data
-        submit_data_response = submit_data(@instance.measure_to_test, resources, measure_report)
+        submit_data_response = submit_data(measure_resource_system.id, resources, measure_report)
         assert_response_ok(submit_data_response)
 
         resources.push(measure_report)
@@ -62,13 +66,16 @@ module Inferno
 
         assert(!@instance.measure_to_test.nil?, 'No measure selected. You must run the Prerequisite sequences prior to running Reporting Actions sequences.')
 
+        measure_identifier, measure_version = @instance.measure_to_test.split('|')
+        measure_resource_system = get_measure_from_test_server(measure_identifier, measure_version)
+
         @client.additional_headers = { 'x-api-key': @instance.api_key, 'Authorization': @instance.auth_header } if @instance.api_key && @instance.auth_header
 
         resources = [get_data_requirements_resources(@instance.data_requirements_queries).sample]
-        measure_report = create_measure_report(@instance.measure_to_test, '2019', '2019')
+        measure_report = create_measure_report(measure_resource_system.url, '2019-01-01', '2019-12-31')
 
         # Submit the data
-        submit_data_response = submit_data(@instance.measure_to_test, resources, measure_report)
+        submit_data_response = submit_data(measure_resource_system.id, resources, measure_report)
         assert_response_ok(submit_data_response)
 
         resources.push(measure_report)
