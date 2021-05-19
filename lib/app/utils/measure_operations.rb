@@ -209,7 +209,7 @@ module Inferno
 
     def get_data_requirements_queries(data_requirement)
       # hashes with { endpoint => FHIR Type, params => { queries } }
-      data_requirement
+      queries = data_requirement
         .select { |dr| dr&.type }
         .map do |dr|
           q = { 'endpoint' => dr.type, 'params' => {} }
@@ -226,11 +226,28 @@ module Inferno
 
           q
         end
+
+      # TODO: We should be smartly querying for patients based on what the resources reference?
+      queries.unshift('endpoint' => 'Patient', 'params' => {})
+      queries
     end
 
     def get_data_requirements_resources(queries)
-      # TODO: We should be smartly querying for patients based on what the resources reference?
-      queries.unshift('endpoint' => 'Patient', 'params' => {})
+      # If data requirements failed, default to a canned list of resources to test $submit-data
+      if queries.empty?
+        default_queries = [
+          { 'endpoint' => 'Patient', 'params' => {} },
+          { 'endpoint' => 'Encounter', 'params' => {} },
+          { 'endpoint' => 'Condition', 'params' => {} },
+          { 'endpoint' => 'Procedure', 'params' => {} },
+          { 'endpoint' => 'Observation', 'params' => {} }
+        ]
+        @instance.update(data_requirements_queries: default_queries)
+        @instance.save!
+
+        queries = @instance.data_requirements_queries
+      end
+
       queries
         .map do |q|
         endpoint = Inferno::CQF_RULER + q.endpoint
