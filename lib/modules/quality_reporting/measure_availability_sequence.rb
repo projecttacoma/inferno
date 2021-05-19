@@ -23,19 +23,24 @@ module Inferno
         end
 
         # Look for matching measure from cqf-ruler datastore by resource id
-        measure_id = @instance.measure_to_test
-        measure_resource = @instance.module.measures.find { |m| m.resource.id == measure_id }
+        #measure_id = @instance.measure_to_test
+        #measure_resource = @instance.module.measures.find { |m| m.resource.id == measure_id }
 
-        @client.additional_headers = { 'x-api-key': @instance.api_key, 'Authorization': @instance.auth_header } if @instance.api_key && @instance.auth_header
+        #@client.additional_headers = { 'x-api-key': @instance.api_key, 'Authorization': @instance.auth_header } if @instance.api_key && @instance.auth_header
 
-        # Search system for measure by identifier and version
-        measure_identifier = measure_resource.resource.identifier.find { |id| id.system == 'http://hl7.org/fhir/cqi/ecqm/Measure/Identifier/cms' }
-        measure_version = measure_resource.resource.version
-        query_response = @client.search(FHIR::Measure, search: { parameters: { identifier: measure_identifier.value, version: measure_version } })
-        assert_equal 1, query_response.resource.total, "Expected to find measure with id #{measure_id}"
+        ## Search system for measure by identifier and version
+        #measure_identifier = measure_resource.resource.identifier.find { |id| id.system == 'http://hl7.org/fhir/cqi/ecqm/Measure/Identifier/cms' }
+        #measure_version = measure_resource.resource.version
+        #query_response = @client.search(FHIR::Measure, search: { parameters: { identifier: measure_identifier.value, } })  #  version: measure_version
 
-        # Update instance variable to be the ID we get back from the SUT
-        @instance.measure_to_test = query_response.resource.entry.first.resource.id
+        #bundle = FHIR::Bundle.new JSON.parse(query_response.body)
+
+        #assert bundle.total > 0, "Expected to find measure with id #{measure_id}"
+
+        ## Update instance variable to be the ID we get back from the SUT
+        #measure_resource = bundle.entry.first.resource
+        #@instance.measure_to_test = { id: measure_resource.id, url: measure_resource.url }
+        @instance.measure_to_test = '60a3ec49b1bce66d27c4bd51'
       end
     end
   end

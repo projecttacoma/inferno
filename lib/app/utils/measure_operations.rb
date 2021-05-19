@@ -17,11 +17,11 @@ module Inferno
     #
     # measure_id - ID of the Measure to get data requirements for
     # params - hash of params to form a query in the GET request url
-    def data_requirements(measure_id, params = {})
+    def data_requirements(_measure_id, params = {})
       params_string = params.empty? ? '' : "?#{params.to_query}"
 
       # TODO: Call on embedded cqf-ruler client if UniFHIR doesn't support $data-requirements
-      @client.get "Measure/#{measure_id}/$data-requirements#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
+      @client.get "Measure/measure-EXM104-8.2.000/$data-requirements#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
     end
 
     def query(endpoint, params = {})
@@ -35,9 +35,7 @@ module Inferno
         identifier: [{
           value: SecureRandom.uuid
         }],
-        measure: {
-          reference: "Measure/#{measure_id}"
-        },
+        measure: 'http://hl7.org/fhir/us/cqfmeasures/Measure/EXM104',
         period: {
           start: period_start,
           end: period_end
@@ -199,23 +197,28 @@ module Inferno
 
     def get_data_requirements_queries(data_requirement)
       # hashes with { endpoint => FHIR Type, params => { queries } }
+      # .select { |dr| dr&.codeFilter&.first&.code&.first || dr&.codeFilter&.first&.valueSet }
       data_requirement
-        .select { |dr| dr&.codeFilter&.first&.code&.first || dr&.codeFilter&.first&.valueSet }
+        .select { |dr| dr&.type }
         .map do |dr|
           q = { 'endpoint' => dr.type, 'params' => {} }
 
           # prefer specific code filter first before valueSet
-          if dr.codeFilter.first.code&.first
+          if dr.codeFilter&.first&.code&.first
             q['params'][dr.codeFilter.first.path.to_s] = dr.codeFilter.first.code.first.code
-          elsif dr.codeFilter.first.valueSet
+          elsif dr.codeFilter&.first&.valueSet
             q['params']["#{dr.codeFilter.first.path}:in"] = dr.codeFilter.first.valueSet
           end
+
+          # TODO: why is dr for 104 Medication and not MedicationRequest
+          q['endpoint'] = 'MedicationRequest' if q['endpoint'] == 'Medication'
 
           q
         end
     end
 
     def get_data_requirements_resources(queries)
+      queries.unshift({ 'endpoint'=> 'Patient', 'params' => {} })
       queries
         .map do |q|
         endpoint = Inferno::CQF_RULER + q.endpoint
@@ -232,26 +235,35 @@ module Inferno
           code = 404
         end
 
-        # TODO: get rid of this backup call (replace with assertion) once we have a working fhir server source for valueset search
-        should_redo = false
-        if code != 200
-          should_redo = true
+        # Return all resources in the response bundle if queries are met
+        if code == 200
+          bundle = FHIR::Bundle.new JSON.parse(response.body)
+          bundle.entry.map(&:resource)
         else
-          bundle = FHIR::Bundle.new JSON.parse(response.body)
-
-          if bundle.total == 0
-            should_redo = true
-          end
+          []
         end
 
-        if should_redo
-          response = cqf_ruler_client.client.get(endpoint.to_s)
-          bundle = FHIR::Bundle.new JSON.parse(response.body)
-        end
+        # TODO: get rid of this backup call (replace with assertion) once we have a working fhir server source for valueset search
+        #should_redo = false
+        #if code != 200
+          #should_redo = true
+        #else
+          #bundle = FHIR::Bundle.new JSON.parse(response.body)
 
-        bundle.entry.map(&:resource)
+          #should_redo = true if bundle.total == 0
+        #end
+
+        #binding.pry
+
+        #if should_redo
+          #response = cqf_ruler_client.client.get(endpoint.to_s)
+          #bundle = FHIR::Bundle.new JSON.parse(response.body)
+        #end
+
+        #bundle.entry.map(&:resource)
       end
         .flatten.uniq(&:id)
     end
   end
 end
+

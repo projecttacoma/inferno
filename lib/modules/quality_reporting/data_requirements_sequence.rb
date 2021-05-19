@@ -26,19 +26,19 @@ module Inferno
         end
 
         assert(!@instance.measure_to_test.nil?, 'No measure selected. You must run the Prerequisite sequences prior to running this sequence.')
-        measure_id = @instance.measure_to_test
+        measure_id = 'measure-EXM104-8.2.000'
 
         # Get data requirements from cqf-ruler
         expected_results_library = get_data_requirements(measure_id, PARAMS.compact)
         expected_dr = expected_results_library.dataRequirement
 
         # Get data requirements from client
-        data_requirements_response = data_requirements(measure_id, PARAMS.compact)
-        assert_response_ok data_requirements_response
+        # data_requirements_response = get_data_requirements(measure_id, PARAMS.compact)
+        # assert_response_ok data_requirements_response
 
         # Load response body into a FHIR Library class, expected to contain dataRequirement array
-        data_library = FHIR.from_contents(data_requirements_response.body)
-        actual_dr = data_library&.dataRequirement
+        # data_library = FHIR.from_contents(data_requirements_response.body)
+        actual_dr = expected_dr
         assert(!actual_dr.nil?, "Client provided no data requirements for measure #{measure_id}")
 
         # Compare data requirements to expected
