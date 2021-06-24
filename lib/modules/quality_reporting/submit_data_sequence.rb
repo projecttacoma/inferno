@@ -32,7 +32,9 @@ module Inferno
 
         # TODO: How do we decide which patient we are submitting for, if applicable???
 
-        # TODO: If the SUT does not support the $data-requirements operation, we could have a fallback here to get a set list of resources just to test submission
+        # Call the $updateCodeSystems workaround on embedded cqf-ruler so code:in queries work
+        update_code_systems
+
         resources = get_data_requirements_resources(@instance.data_requirements_queries)
         measure_report = create_measure_report(measure_resource_system.url, '2019-01-01', '2019-12-31')
 
