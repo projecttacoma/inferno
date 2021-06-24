@@ -210,7 +210,6 @@ module Inferno
     def update_code_systems
       # Expand valuesets into codesystem resources to support code:in queries
       response = cqf_ruler_client.client.get(Inferno::CQF_RULER + '/$updateCodeSystems')
-      binding.pry
       raise StandardError, 'Error updating codesystems' if response.code != 200
     end
 
