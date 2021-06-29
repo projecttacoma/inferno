@@ -11,14 +11,14 @@ test_sets:
         overview: The server satisfies prerequisite state for quality reporting.
         sequences:
           - MeasureAvailability
-          - ValueSetSequence
+          #- ValueSetSequence
       - name: Reporting Actions
         overview: The server correctly handles reporting actions.
         sequences:
           - ResourceSequence
           - DataRequirementsSequence
           - SubmitDataSequence
-          - MeasureEvaluationSequence
+          #- MeasureEvaluationSequence
       #- name: CMS165 Bulk Data Reporting
         #sequences:
           #- CMS165BulkDataReportingSequence
