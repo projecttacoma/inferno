@@ -19,7 +19,6 @@ module Inferno
     # params - hash of params to form a query in the GET request url
     def data_requirements(measure_id, params = {})
       params_string = params.empty? ? '' : "?#{params.to_query}"
-
       @client.get "Measure/#{measure_id}/$data-requirements#{params_string}", @client.fhir_headers(format: FHIR::Formats::ResourceFormat::RESOURCE_JSON)
     end
 
@@ -226,9 +225,6 @@ module Inferno
           elsif dr.codeFilter&.first&.valueSet
             q['params']["#{dr.codeFilter.first.path}:in"] = dr.codeFilter.first.valueSet
           end
-
-          # TODO: why is dr for 104 Medication and not MedicationRequest on cqf-ruler
-          q['endpoint'] = 'MedicationRequest' if q['endpoint'] == 'Medication'
 
           q
         end
